@@ -6,14 +6,24 @@ def add(*args):
     return k
 
 
-def rangeX(*args):
+def rangeX(*args, brak=')'):
     if len(args) == 0:
-        return (0,)
+        return None
     if len(args) == 1:
-        return rangeX(0, args[0])
+        return rangeX(0, args[0], brak)
+
+    start = args[0]
+    stop = args[1]
+
+    if brak[0] == ')':
+        stop = args[1]
+    else:
+        stop = args[1] + 1
+
     r = []
-    q = args[0]
-    while q < args[1]:
+    q = start
+
+    while q < stop:
         r = r + [q]
         q = q + 1
     return tuple(r)
@@ -25,4 +35,4 @@ print(rangeX())
 print(rangeX(4))
 print(rangeX(3,7))
 
-for q in rangeX(4,9): print(q)
+for q in rangeX(4, 9, brak=']'): print(q, end=',')
