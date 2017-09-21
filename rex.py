@@ -47,7 +47,7 @@ def daysInMonth(year, month):
 
 
 def parsetime(s):
-    match_date = r'^[\s]*(?P<year>[0-9]{2,4})-(?P<month>[0-9]{1,2})-(?P<day>[0-9]{1,2})($|T|-| )(?P<time>.*)'
+    match_date = r'^\s*(?P<year>[0-9]{2,4})-(?P<month>[0-9]{1,2})-(?P<day>[0-9]{1,2})($|T|-| )(?P<time>.*)'
     parse_d = re.search(match_date, s)
     if parse_d is None:
         raise ParseTimeError("Invalid y-m-d")
@@ -67,10 +67,11 @@ def parsetime(s):
         raise ParseTimeError("Month must be in range [1,12]")
     month = '%02d' % month_num
 
+    day_num = int(parse_d.group('day'))
     days_in_this_month = daysInMonth(year_num, month_num)
-    if int(parse_d.group('day')) not in range(1, days_in_this_month + 1):
+    if day_num not in range(1, days_in_this_month + 1):
         raise ParseTimeError(f'Day must be in range [1,%d]' % days_in_this_month)
-    day = '%02d' % int(parse_d.group('day'))
+    day = '%02d' % day_num
 
     hour = '00'
     minute = '00'
@@ -125,6 +126,15 @@ class TestParseTime(unittest.TestCase):
         self.assertEqual(self.parse('2017-02-28'), '2017-02-28T00:00:00')
         self.assertEqual(self.parse('2016-02-29'), '2016-02-29T00:00:00')   # 2016 is a leap year
         self.assertEqual(self.parse('2000-02-29'), '2000-02-29T00:00:00')   # 2000 is a leap year
+
+        self.assertEqual(self.parse(' 2017-09-17'), '2017-09-17T00:00:00')
+        self.assertEqual(self.parse('  2017-09-17T'), '2017-09-17T00:00:00')
+        self.assertEqual(self.parse(' \r\n\t 2017-09-17-'), '2017-09-17T00:00:00')
+        self.assertEqual(self.parse('\r\n2017-09-17 '), '2017-09-17T00:00:00')
+
+        self.assertEqual(self.parse('2017-9-17'), '2017-09-17T00:00:00')
+        self.assertEqual(self.parse('2017-09-7'), '2017-09-07T00:00:00')
+
 
     def testCorrectTimes(self):
         self.assertEqual(self.parse('2017-09-17T22:20:06'), '2017-09-17T22:20:06')
@@ -183,13 +193,24 @@ class PhoneNumberError(Exception):
 
 def parsephonenumber(s):
 
+    ac_rule = r'(?P<ac>[2-9][0-9]{2})'          # three digits, may not start with 0 or 1
+    sep_rule = r'(?P<sep>[-.])'                 # first separator is either - or .
+    prefix_rule = r'(?P<prefix>[1-9][0-9]{2})'  # three digits, may not start with 0
+    # xxx.xxx.xxxx and xxx-xxx-xxxx are valid, but xxx.xxx-xxxx and xxx-xxx.xxxx are not valid.
+    repsep_rule = r'(?P=sep)'                   # second separator is the same as the first.
+    line_rule = r'(?P<line>[0-9]{4})'           # any four digits
+
     parts = None
+
     if parts is None:
-        # note the (?P=sep): that field must match the previous sep field.
-        # xxx.xxx.xxxx and xxx-xxx-xxxx are valid, but xxx.xxx-xxxx and xxx-xxx.xxxx are not valid.
-        parts = re.search(r'^([01]\+)?(?P<ac>[1-9][0-9]{2})(?P<sep>[-.])(?P<prefix>[1-9][0-9]{2})(?P=sep)(?P<line>[0-9]{4})(?P<ext>.*)?', s)
+        rule = r'^(?:[01]\+)?' + ac_rule + sep_rule + prefix_rule + repsep_rule + line_rule + r'(?P<ext>.*)?'
+        parts = re.search(rule, s)
+
     if parts is None:
-        parts = re.search(r'^(?P<ac>)(?P<prefix>[1-9][0-9]{2})[-.](?P<line>[0-9]{4})(?P<ext>.*)?', s)
+        # create an 'ac' group, but parse nothing into it.
+        rule = r'^(?P<ac>)' + prefix_rule + sep_rule + line_rule + r'(?P<ext>.*)?'
+        parts = re.search(rule, s)
+
     if parts is None:
         raise PhoneNumberError()
 
@@ -231,7 +252,11 @@ class TestPhoneNumber(unittest.TestCase):
 
     def testWithAreaCodeAndExtension(self):
         self.assertEqual(self.parse('0+206-465-6421     ext 33'), '206 465 6421 ex:33')
+        self.assertEqual(self.parse('1+206-465-6421     ext 33'), '206 465 6421 ex:33')
         self.assertEqual(self.parse('206-465-6421 104'), '206 465 6421 ex:104')
+
+    def testWithBadLongDistancePrefix(self):
+        self.assertRaises(PhoneNumberError, parsephonenumber, '2+206-465-6421')
 
 
 if __name__ == '__main__':
