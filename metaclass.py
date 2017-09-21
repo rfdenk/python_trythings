@@ -95,9 +95,12 @@ print(f._BAZ, flush=True)
 
 # Django has this cool thing where you define some class attributes,
 # and, when you make a new instance of that class, it has some instance
-# attributes of a different but related type.
+# attributes of the same name, but of a different but related type.
 
 # This is the metaclass that gets the ball rolling on the cool Django trick
+
+# Note that the PyCharm editor will gripe about all sorts of missing attributes,
+# but this code will run.
 class DjMetaclass(type):
 
     def __new__(mcs, class_name, superclasses, attributes):
@@ -119,6 +122,7 @@ class DjMetaclass(type):
 
     def __init__(cls, name, bases, namespace):
         # move the THINGS1 into the class object instance
+        # confession: I'm not quite sure why this step is required...
         thing1_names = getattr(cls, '__THINGS1', [])
         exec('cls._THINGS1 = ' + repr(thing1_names))
         super().__init__(name, bases, namespace)
@@ -139,7 +143,11 @@ class Dj(metaclass=DjMetaclass):
 # MyDj inherits from Dj, so it will have instance attributes first_thing and second_thing, both
 # of type Thing1.Inst1
 class MyDj(Dj):
-    pass
+    def setThing1(self, x):
+        self.first_thing.set(x)
+
+    def setThing2(self, x):
+        self.second_thing.set(x)
 
 
 print(dir(Dj))
@@ -153,8 +161,8 @@ print("Same?", md1.first_thing is md2.second_thing)
 # I don't want it to affect the other one!
 print(md1.first_thing.get(), md1.second_thing.get(), md2.first_thing.get(), md2.second_thing.get())
 
-md1.first_thing.set(34)
+md1.setThing1(34)
 print(md1.first_thing.get(), md1.second_thing.get(), md2.first_thing.get(), md2.second_thing.get())
 
-md2.second_thing.set(104)
+md2.setThing2(104)
 print(md1.first_thing.get(), md1.second_thing.get(), md2.first_thing.get(), md2.second_thing.get())
