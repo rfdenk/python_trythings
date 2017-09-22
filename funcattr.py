@@ -1,4 +1,4 @@
-
+import unittest
 
 def initaccum():
     def decorator(func):
@@ -13,8 +13,12 @@ def accum(x):
     return accum.x
 
 
-print(accum(2))
-print(accum(3))
-print(accum(3))
-print(accum(3))
-print(accum(3))
+class TestAccumulator(unittest.TestCase):
+
+    def testIt(self):
+        self.assertEqual(accum(2), 2)
+        self.assertEqual(accum(3), 5)
+        self.assertEqual(accum(3), 8)
+        self.assertEqual(accum(3), 11)
+        self.assertEqual(accum(3), 14)
+        self.assertEqual(accum(6), 20)

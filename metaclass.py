@@ -1,25 +1,32 @@
-
+import unittest
 
 
 class Thing1:
 
     class Inst1:
         def __init__(self):
-            self.x = 0
+            self.__x = 0
 
         def set(self, x):
-            self.x = x
+            self.__x = x
 
         def get(self):
             # print("THING 1")
-            return self.x
+            return self.__x
 
 
 class Thing2:
 
     class Inst2:
-        def doit(self):
-            print("THING 2")
+        def __init__(self):
+            self.__x = 1
+
+        def set(self, x):
+            self.__x = x + 1
+
+        def get(self):
+            # print("THING 2")
+            return self.__x
 
 
 class FancyAttrMetaclass(type):
@@ -31,6 +38,7 @@ class FancyAttrMetaclass(type):
 
         return getter
 
+    @staticmethod
     def __make_setter(name):
         def setter(self, v):
             return setattr(self, name.upper(), v)
@@ -38,7 +46,6 @@ class FancyAttrMetaclass(type):
         return setter
 
     def __new__(mcs, class_name, superclasses, attributes):
-        print("in meta new", flush=True)
         new_attributes = {}
 
         for name, val in attributes.items():
@@ -60,40 +67,30 @@ class FancyAttrMetaclass(type):
 
 
 class Foo(metaclass=FancyAttrMetaclass):
-
     bar = 'bip'
     _baz = 'dip'
 
 
-print(hasattr(Foo, 'bar'), flush=True)
-# Out: False
-print(hasattr(Foo, 'BAR'), flush=True)
-# Out: True
+class TestFancyAttr(unittest.TestCase):
 
-f = Foo()
-print(f.BAR)
-# Out: 'bip'
+    def testIt(self):
+        self.assertFalse(hasattr(Foo, 'bar'))
+        self.assertTrue(hasattr(Foo, 'BAR'))
 
-print(Foo.BAR)
+    def testSetterAndGetter(self):
+        f = Foo()
+        self.assertEqual(f.BAR, 'bip')
+        self.assertEqual(f._BAZ, 'dip')
+        self.assertEqual(f.getbaz(), 'dip')
 
-print(dir(f), flush=True)
-
-
-print("baz:", f._BAZ, "getbaz:", f.getbaz(), flush=True)
-
-f.setbaz('22')
-print(f._BAZ, f.getbaz(), flush=True)
+        f.setbaz('22')
+        self.assertEqual(f._BAZ, '22')
+        self.assertEqual(f.getbaz(), '22')
 
 
-print(f.BAR, flush=True)
-print(f._BAZ, flush=True)
-
-
-
-
-
-
-# Django has this cool thing where you define some class attributes,
+#
+#
+#  Django has this cool thing where you define some class attributes,
 # and, when you make a new instance of that class, it has some instance
 # attributes of the same name, but of a different but related type.
 
@@ -101,6 +98,7 @@ print(f._BAZ, flush=True)
 
 # Note that the PyCharm editor will gripe about all sorts of missing attributes,
 # but this code will run.
+
 class DjMetaclass(type):
 
     def __new__(mcs, class_name, superclasses, attributes):
@@ -131,6 +129,7 @@ class DjMetaclass(type):
 # Things that want the cool Django trick should inherit from this class.
 class Dj(metaclass=DjMetaclass):
 
+    # these are _class_ attributes!
     first_thing = Thing1()
     second_thing = Thing1()
 
@@ -150,19 +149,50 @@ class MyDj(Dj):
         self.second_thing.set(x)
 
 
-print(dir(Dj))
-print(dir(MyDj))
+class TestDjangoTrick(unittest.TestCase):
 
-md1 = MyDj()
-md2 = MyDj()
-print("Same?", md1.first_thing is md2.second_thing)
+    def testThatThingsAreDistinct(self):
+        md1 = MyDj()
+        md2 = MyDj()
 
-# big test: if we change the th1 in one MyDj instance,
-# I don't want it to affect the other one!
-print(md1.first_thing.get(), md1.second_thing.get(), md2.first_thing.get(), md2.second_thing.get())
+        self.assertFalse(md1.first_thing is md1.second_thing)
+        self.assertFalse(md1.first_thing is md2.first_thing)
+        self.assertFalse(md1.first_thing is md2.second_thing)
+        self.assertFalse(md2.first_thing is md2.second_thing)
 
-md1.setThing1(34)
-print(md1.first_thing.get(), md1.second_thing.get(), md2.first_thing.get(), md2.second_thing.get())
+    def testInitialValueOfThings(self):
+        md1 = MyDj()
+        md2 = MyDj()
 
-md2.setThing2(104)
-print(md1.first_thing.get(), md1.second_thing.get(), md2.first_thing.get(), md2.second_thing.get())
+        self.assertEqual(md1.first_thing.get(), 0)
+        self.assertEqual(md1.second_thing.get(), 0)
+        self.assertEqual(md2.first_thing.get(), 0)
+        self.assertEqual(md2.second_thing.get(), 0)
+
+    def testThingsAreIsolated(self):
+        md1 = MyDj()
+        md2 = MyDj()
+
+        md1.setThing1(34)
+        self.assertEqual(md1.first_thing.get(), 34)
+        self.assertEqual(md1.second_thing.get(), 0)
+        self.assertEqual(md2.first_thing.get(), 0)
+        self.assertEqual(md2.second_thing.get(), 0)
+
+        md2.setThing2(101)
+        self.assertEqual(md1.first_thing.get(), 34)
+        self.assertEqual(md1.second_thing.get(), 0)
+        self.assertEqual(md2.first_thing.get(), 0)
+        self.assertEqual(md2.second_thing.get(), 101)
+
+        md1.setThing2(456)
+        self.assertEqual(md1.first_thing.get(), 34)
+        self.assertEqual(md1.second_thing.get(), 456)
+        self.assertEqual(md2.first_thing.get(), 0)
+        self.assertEqual(md2.second_thing.get(), 101)
+
+        md2.setThing1(1234)
+        self.assertEqual(md1.first_thing.get(), 34)
+        self.assertEqual(md1.second_thing.get(), 456)
+        self.assertEqual(md2.first_thing.get(), 1234)
+        self.assertEqual(md2.second_thing.get(), 101)
