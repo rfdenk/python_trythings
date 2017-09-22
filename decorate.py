@@ -99,3 +99,20 @@ class TestMemoize(unittest.TestCase):
 
         self.assertEqual(add(1,2), 3)
         self.assertEqual(add.call_count, 2)
+
+
+def enabled(func):
+    return func
+
+def disabled(func):
+    def nothing(*args, **kwargs):
+        pass
+    return nothing
+
+state = disabled
+
+@state
+def dbg_func(a):
+    print(a)
+
+dbg_func('123')
