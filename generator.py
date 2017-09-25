@@ -17,7 +17,7 @@ def gen2():
         elif x < 16:
             x = yield(x*2)
         else:
-            break;
+            break
 
 
 class TestGenerators(unittest.TestCase):
@@ -112,11 +112,12 @@ class TestRunningAverageGenerator(unittest.TestCase):
 def prepare_generator2(*outer_args, **outer_kwargs):
     base_args = outer_args[:]
     base_kwargs = deepcopy(outer_kwargs)
+
     def prep(func):
         @wraps(func)
         def inner(*args, **kwargs):
             new_args = base_args + args
-            new_kwargs = base_kwargs;
+            new_kwargs = base_kwargs
             new_kwargs.update(kwargs)
             g = func(*new_args, **new_kwargs)
             next(g)
@@ -185,4 +186,3 @@ class TestRunningAverage2Generator(unittest.TestCase):
         for value in values:
             self.assertEqual('{avg:6.2f}'.format(avg=ra.send(value)), averages[n])
             n += 1
-
