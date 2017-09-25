@@ -41,3 +41,6 @@ print(c.fetchall())
 c.execute('DROP TABLE owners')
 conn.commit()
 
+
+c.close()
+conn.close()
