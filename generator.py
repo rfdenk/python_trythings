@@ -1,11 +1,13 @@
 
 import unittest
+from copy import deepcopy
 
 
 def gen1():
     yield('a')
     yield('b')
     yield('c')
+
 
 def gen2():
     x = 0
@@ -105,3 +107,67 @@ class TestRunningAverageGenerator(unittest.TestCase):
         for value in values:
             self.assertEqual('{avg:6.2f}'.format(avg=ra2.send(value)), averages[n])
             n += 1
+
+
+def prepare_generator2(*outer_args, **outer_kwargs):
+    base_args = outer_args[:]
+    base_kwargs = deepcopy(outer_kwargs)
+    def prep(func):
+        def inner(*args, **kwargs):
+            new_args = base_args + args
+            new_kwargs = base_kwargs;
+            new_kwargs.update(kwargs)
+            g = func(*new_args, **new_kwargs)
+            next(g)
+            return g
+        return inner
+    return prep
+
+
+@prepare_generator2(initial_average=10, initial_count=2)
+def running_average2(initial_average=None, initial_count=None):
+    total = (initial_average * initial_count) if initial_average is not None and initial_count is not None else 0.0
+    counter = initial_count if initial_count is not None else 0
+    average = (initial_average if initial_count is not None else None)
+    while True:
+        # print("about to yield", average)
+        term = yield(average)
+        total += term
+        counter += 1
+        average = total / counter
+
+
+@prepare_generator2()
+def running_average3(initial_average=None, initial_count=None):
+    total = (initial_average * initial_count) if initial_average is not None and initial_count is not None else 0.0
+    counter = initial_count if initial_count is not None else 0
+    average = (initial_average if initial_count is not None else None)
+    while True:
+        # print("about to yield", average)
+        term = yield(average)
+        total += term
+        counter += 1
+        average = total / counter
+
+
+class TestRunningAverage2Generator(unittest.TestCase):
+
+    def testRunningAverage2(self):
+
+        values = [17, 231, 12, 8, 3]
+        averages = [' 12.33', ' 67.00', ' 56.00', ' 48.00', ' 41.57']
+        ra2 = running_average2()
+        n = 0
+        for value in values:
+            self.assertEqual('{avg:6.2f}'.format(avg=ra2.send(value)), averages[n])
+            n += 1
+
+    def testRunningAverage3(self):
+        values = [7, 13, 17, 231, 12, 8, 3]
+        averages = ['  7.00', ' 10.00', ' 12.33', ' 67.00', ' 56.00', ' 48.00', ' 41.57']
+        ra = running_average3()
+        n = 0
+        for value in values:
+            self.assertEqual('{avg:6.2f}'.format(avg=ra.send(value)), averages[n])
+            n += 1
+
