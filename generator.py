@@ -113,6 +113,7 @@ def prepare_generator2(*outer_args, **outer_kwargs):
     base_args = outer_args[:]
     base_kwargs = deepcopy(outer_kwargs)
     def prep(func):
+        @wraps(func)
         def inner(*args, **kwargs):
             new_args = base_args + args
             new_kwargs = base_kwargs;
@@ -126,11 +127,13 @@ def prepare_generator2(*outer_args, **outer_kwargs):
 
 @prepare_generator2(initial_average=10, initial_count=2)
 def running_average2(initial_average=None, initial_count=None):
+    """
+    running average two
+    """
     total = (initial_average * initial_count) if initial_average is not None and initial_count is not None else 0.0
     counter = initial_count if initial_count is not None else 0
     average = (initial_average if initial_count is not None else None)
     while True:
-        # print("about to yield", average)
         term = yield(average)
         total += term
         counter += 1
@@ -139,11 +142,13 @@ def running_average2(initial_average=None, initial_count=None):
 
 @prepare_generator2()
 def running_average3(initial_average=None, initial_count=None):
+    """
+    running average three
+    """
     total = (initial_average * initial_count) if initial_average is not None and initial_count is not None else 0.0
     counter = initial_count if initial_count is not None else 0
     average = (initial_average if initial_count is not None else None)
     while True:
-        # print("about to yield", average)
         term = yield(average)
         total += term
         counter += 1
@@ -154,6 +159,11 @@ class TestRunningAverage2Generator(unittest.TestCase):
 
     def testRunningAverage2(self):
 
+        # make sure that wraps() works as expected.
+        self.assertEqual(running_average2.__name__, 'running_average2')
+        self.assertEqual(running_average2.__doc__.strip(), 'running average two')
+        self.assertTrue(running_average2.__str__().startswith('<function running_average2 at'))
+
         values = [17, 231, 12, 8, 3]
         averages = [' 12.33', ' 67.00', ' 56.00', ' 48.00', ' 41.57']
         ra2 = running_average2()
@@ -163,6 +173,11 @@ class TestRunningAverage2Generator(unittest.TestCase):
             n += 1
 
     def testRunningAverage3(self):
+
+        self.assertEqual(running_average3.__name__, 'running_average3')
+        self.assertEqual(running_average3.__doc__.strip(), 'running average three')
+        self.assertTrue(running_average3.__str__().startswith('<function running_average3 at'))
+
         values = [7, 13, 17, 231, 12, 8, 3]
         averages = ['  7.00', ' 10.00', ' 12.33', ' 67.00', ' 56.00', ' 48.00', ' 41.57']
         ra = running_average3()
