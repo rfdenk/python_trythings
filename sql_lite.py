@@ -24,17 +24,20 @@ owners = [
 
 c.executemany('INSERT INTO owners VALUES (?,?,?)', owners)
 
+conn.commit()
+
 c.execute('SELECT * from owners')
 print(c.fetchall())
 
 c.execute('SELECT * from owners WHERE city=? ORDER BY age', ('Bree',))
 print(c.fetchall())
 
-c.execute('SELECT * from owners WHERE city=? ORDER BY age DESC', ('Bree',))
-print(c.fetchall())
+c.execute('SELECT * from owners WHERE city=:city ORDER BY age DESC', {'city':'Bree'})
+print('x', c.fetchall())
 
 c.execute('SELECT * from owners ORDER BY name')
 print(c.fetchall())
 
 c.execute('DROP TABLE owners')
+conn.commit()
 
