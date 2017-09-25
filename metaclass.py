@@ -129,19 +129,19 @@ class DjMetaclass(type):
 # Things that want the cool Django trick should inherit from this class.
 class Dj(metaclass=DjMetaclass):
 
+    def __init__(self):
+        # for each of the Thing1 class attributes, make a Thing1.Inst1 instance attribute.
+        for name in self._THINGS1:
+            exec('self.' + name + ' = Thing1.Inst1()')
+
+
+# MyDj inherits from Dj, so it execute Dj.__init__, which makes us some nifty instance attributes.
+class MyDj(Dj):
+
     # these are _class_ attributes!
     first_thing = Thing1()
     second_thing = Thing1()
 
-    def __init__(self):
-        # for each of the Thing1 class attributes, make a Thing1.Inst1 instance attribute.
-        for name in Dj._THINGS1:
-            exec('self.' + name + ' = Thing1.Inst1()')
-
-
-# MyDj inherits from Dj, so it will have instance attributes first_thing and second_thing, both
-# of type Thing1.Inst1
-class MyDj(Dj):
     def setThing1(self, x):
         self.first_thing.set(x)
 
