@@ -179,7 +179,7 @@ class TestDjangoTrick(unittest.TestCase):
         self.assertEqual(md2.first_thing.get(), 0)
         self.assertEqual(md2.second_thing.get(), 0)
 
-        md2.setThing2(101)
+        md2.second_thing.set(101)       # md2.setThing2(101)
         self.assertEqual(md1.first_thing.get(), 34)
         self.assertEqual(md1.second_thing.get(), 0)
         self.assertEqual(md2.first_thing.get(), 0)
