@@ -22,7 +22,10 @@ class TestCurrying(unittest.TestCase):
     def test1(self):
         curried_func = curry(func, 1, 2, multiply_by=3)
 
+        # (1 + 2 + 3) * 3 = 18
         self.assertEqual(curried_func(3), 18)
+
+        # (1 + 2 + 4) * 2 = 14
         self.assertEqual(curried_func(4, multiply_by=2), 14)
 
 if __name__ == '__main__':
