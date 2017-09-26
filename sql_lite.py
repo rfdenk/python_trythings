@@ -40,6 +40,7 @@ characters = [
         ('Bilbo', 1, 65, 1),
         ('Innkeeper', 2, 65, 0),
         ('Aragorn', 2, 137, 3),
+        ('Gandalf', None, 9000, 0)
     ]
 
 c.executemany('INSERT INTO characters (name, city, age, moved) VALUES (?, ?, ?, ?)', characters)
@@ -121,62 +122,70 @@ print()
 #
 
 c.execute('SELECT * FROM characters CROSS JOIN cities')
-cross_join = c.fetchall()
+join = c.fetchall()
 print('CROSS JOIN')
-for row in cross_join:
+for row in join:
     print('.', row)
 print()
 print()
 
 c.execute('SELECT * FROM characters INNER JOIN cities')
-cross_join = c.fetchall()
+join = c.fetchall()
 print('INNER JOIN *', flush=True)
-for row in cross_join:
+for row in join:
     print('.', row)
 print()
 print()
 
 
 c.execute('SELECT * FROM characters JOIN cities')
-cross_join = c.fetchall()
+join = c.fetchall()
 print('JOIN *', flush=True)
-for row in cross_join:
+for row in join:
     print(".", row)
 print()
 print()
 
 
 c.execute('SELECT * FROM characters, cities where characters.city = cities.id')
-cross_join = c.fetchall()
+join = c.fetchall()
 print('IMPLICIT JOIN *', flush=True)
-for row in cross_join:
+for row in join:
     print(".", row)
 print()
 print()
 
 
 c.execute('SELECT characters.name, cities.name FROM characters INNER JOIN cities')
-cross_join = c.fetchall()
+join = c.fetchall()
 print('INNER JOIN', flush=True)
-for row in cross_join:
+for row in join:
     print(".", row)
 print()
 print()
 
 
 c.execute('SELECT characters.name, cities.name FROM characters JOIN cities ON cities.id = characters.city')
-cross_join = c.fetchall()
+join = c.fetchall()
 print('JOIN WITH ON', flush=True)
-for row in cross_join:
+for row in join:
     print(".", row)
 print()
 print()
 
 
 c.execute('SELECT * FROM characters JOIN cities ON cities.id = characters.city')
-cross_join = c.fetchall()
+join = c.fetchall()
 print('JOIN * WITH ON', flush=True)
-for row in cross_join:
+for row in join:
+    print(".", row)
+print()
+print()
+
+c.execute('SELECT * FROM characters JOIN cities ON cities.id <> characters.city')
+join = c.fetchall()
+print('JOIN * WITH ON mismatched cities (can move to!)')
+for row in join:
     print(".", row)
 print()
 print()
@@ -187,22 +196,49 @@ c.execute(
     'FROM characters '
     'JOIN cities ON cities.id = characters.city GROUP BY cities.name'
     )
-cross_join = c.fetchall()
+join = c.fetchall()
 print('JOIN AND GROUP BY', flush=True)
-for row in cross_join:
+for row in join:
     print(".", row)
 print()
 print()
 
 
 c.execute('SELECT characters.name, cities.name FROM cities JOIN characters ON cities.id = characters.city')
-cross_join = c.fetchall()
-print('JOIN AND GROUP BY REV', flush=True)
-for row in cross_join:
+join = c.fetchall()
+print('JOIN REV')
+for row in join:
     print(".", row)
 print()
 print()
 
+c.execute('SELECT characters.name, cities.name FROM characters LEFT JOIN cities ON cities.id = characters.city')
+join = c.fetchall()
+print('LEFT JOIN characters->cities')
+for row in join:
+    print(".", row)
+print()
+print()
+
+
+c.execute('SELECT characters.name, cities.name FROM cities LEFT JOIN characters ON cities.id = characters.city')
+join = c.fetchall()
+print('LEFT JOIN cities->characters (=? RIGHT JOIN characters->cities)')
+for row in join:
+    print(".", row)
+print()
+print()
+
+c.execute('SELECT k.name, c.name FROM characters k LEFT JOIN cities c ON c.id=k.city '
+          'UNION ALL '
+          'SELECT k.name, c.name FROM cities c LEFT JOIN characters k ON c.id=k.city WHERE k.city IS NULL'
+          )
+join = c.fetchall()
+print("FULL OUTER JOIN?")
+for row in join:
+    print(".", row)
+print()
+print()
 
 #
 # TRIGGER
