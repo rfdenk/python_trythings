@@ -86,5 +86,45 @@ class TestWith(unittest.TestCase):
         self.assertEqual(y.v, 45)
 
 
+class SuppressDivByZero:
+
+    def __init__(self, suppress):
+        self.v = 0
+        self.suppress = suppress
+
+    def __enter__(self):
+        self.v = 0
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if exc_type is None:
+            return True
+        if self.suppress and exc_type is ZeroDivisionError:
+            return True
+        return False
+
+    def accum(self, v):
+        self.v += v
+
+    def div(self, d):
+        self.v /= d
+
+
+class TestSDBZ(unittest.TestCase):
+
+    @staticmethod
+    def do_test(suppress):
+        with SuppressDivByZero(suppress) as z:
+            z.accum(4)
+            z.div(2)
+            z.div(0)
+            z.accum(3)
+        return z.v
+
+    def test_it(self):
+        self.assertEqual(self.do_test(True), 2)
+        self.assertRaises(ZeroDivisionError, self.do_test, False)
+
+
 if __name__ == '__main__':
     unittest.main()
