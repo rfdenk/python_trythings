@@ -112,14 +112,21 @@ class SuppressDivByZero:
 
 class TestSDBZ(unittest.TestCase):
 
+    def setUp(self):
+        print()
+        print("Starting SDBZ tests", flush=True)
+
+    def tearDown(self):
+        print("Finished SDBZ tests", flush=True)
+
     @staticmethod
     def do_test(suppress):
         with SuppressDivByZero(suppress) as z:
             z.accum(4)
             z.div(2)
-            z.div(0)
-            z.accum(3)
-        return z.v
+            z.div(0)        # will trigger divbyzero error!
+            z.accum(3)      # will never get executed!
+        return z.v          # will never get executed!
 
     def test_it(self):
         self.assertEqual(self.do_test(True), 2)
