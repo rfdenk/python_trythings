@@ -30,7 +30,6 @@ func_a('a', 'b', flush=True, end='[EOL]\r\n', sep='.')
 func_b('x', 'y', 'z', end='</msg>\r\n', sep='<>')
 
 
-
 class NoCall:
     def __init__(self, v):
         self.v = v
@@ -41,3 +40,5 @@ print(dir(nc))
 print(callable(nc))
 if callable(nc):
     nc()
+
+
