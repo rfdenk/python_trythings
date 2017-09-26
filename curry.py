@@ -28,5 +28,6 @@ class TestCurrying(unittest.TestCase):
         # (1 + 2 + 4) * 2 = 14
         self.assertEqual(curried_func(4, multiply_by=2), 14)
 
+
 if __name__ == '__main__':
     unittest.main()
