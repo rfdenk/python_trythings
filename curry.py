@@ -1,3 +1,5 @@
+import unittest
+
 
 def curry(f, *fixed_args, **fixed_kwargs):
     f_args = fixed_args[:]
@@ -15,7 +17,13 @@ def func(a, b, c, multiply_by=1):
     return (a + b + c) * multiply_by
 
 
-curried_func = curry(func, 1, 2, multiply_by=3)
+class TestCurrying(unittest.TestCase):
 
-print(curried_func(3))
-print(curried_func(3, multiply_by=2))
+    def test1(self):
+        curried_func = curry(func, 1, 2, multiply_by=3)
+
+        self.assertEqual(curried_func(3), 18)
+        self.assertEqual(curried_func(4, multiply_by=2), 14)
+
+if __name__ == '__main__':
+    unittest.main()
