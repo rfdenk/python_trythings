@@ -24,6 +24,22 @@ def combinations(k, n):
             return all_combos
 
 
+def combo_generator(k, n):
+    c = []
+    for i in range(0, k):
+        c.append(i)
+
+    while True:
+        yield c
+        for i in reversed(range(0, k)):
+            if c[i] < n-(k-i):              # I can increment this one, and have room for the rest.
+                c[i] += 1                   # do so!
+                for j in range(i+1, k):
+                    c[j] = c[j-1] + 1       # fill in the rest
+                break
+        else:                               # did not hit the "break", so we must be done.
+            return
+
 def factorial(n):
     if n == 1:
         return 1
@@ -47,3 +63,10 @@ if __name__ == "__main__":
                 print(str(s) + " and " + str(e) + " are duplicates!")
 
     print("There are", str(num_duplicates), "duplicates")
+
+    generated_combos = 0
+    for c in combo_generator(5,7):
+        generated_combos += 1
+        print(str(c))
+
+    print("There are " + str(generated_combos) + " generated combos")
