@@ -41,10 +41,12 @@ def combo_generator(k, n):
             return
 
 def factorial(n):
-    if n == 1:
-        return 1
-    return n * factorial(n-1)
-
+    acc = 1
+    v = n;
+    while v > 0:
+        acc = acc * v
+        v -= 1
+    return acc
 
 def count_combinations(k, n):
     return factorial(n) / (factorial(k) * factorial(n-k))
