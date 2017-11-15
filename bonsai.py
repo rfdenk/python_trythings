@@ -1,6 +1,7 @@
 import unittest
 
 def can_merge(list1, list2):
+    # brute force
     for n1 in range(0, len(list1)):
         for n2 in range(0, len(list2)):
             if list2[n2] == list1[n1]:
@@ -9,6 +10,7 @@ def can_merge(list1, list2):
 
 
 def do_merge(list1, list2):
+    # brute_force
     new_list = list1[:]
     for nt in range(0, len(list2)):
         if list2[nt] not in new_list:
@@ -16,14 +18,14 @@ def do_merge(list1, list2):
     return new_list
 
 
-def build_lol(list1, list2):
-    new_list = [list1]
-    for n2 in range(0, len(list2)):
-        new_list.append(list2[n2])
+def build_lol(head, tail):
+    new_list = [head]
+    for nt in range(0, len(tail)):
+        new_list.append(tail[nt])
     return new_list
 
 
-def merge2(list_of_lists):
+def merge_head_once(list_of_lists):
     new_head = list_of_lists[0]
     tail = list_of_lists[1:]
     new_tail = []
@@ -47,7 +49,7 @@ def merge(list_of_lists):
     keep_merging = True
     while keep_merging:
         original_len = len(lol)
-        lol = merge2(lol)
+        lol = merge_head_once(lol)
         if len(lol) == original_len:
             keep_merging = False        # no merges occurred
 
