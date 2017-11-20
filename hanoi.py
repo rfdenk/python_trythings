@@ -24,10 +24,11 @@ def move(num_blocks):
 
 def swap_l_and_r(moves):
     swapped = []
-    for m in range(0,len(moves)):
-        new_move = moves[m].replace('L','_').replace('R','L').replace('_','R')
+    for m in range(0, len(moves)):
+        new_move = moves[m].replace('L', '_').replace('R', 'L').replace('_', 'R')
         swapped.append(new_move)
     return swapped
+
 
 def execute_moves(num_blocks, moves):
     pillars = []
@@ -41,16 +42,16 @@ def execute_moves(num_blocks, moves):
     for m in range(0, len(moves)):
         block_to_move = moves[m][0:-1]
         dir_to_move = moves[m][-1]
-        for p in range(0,3):
+        for p in range(0, 3):
             if len(pillars[p]) > 0 and pillars[p][-1] == block_to_move:
                 pillars[p] = pillars[p][0:-1]
-                if(dir_to_move == "L"):
+                if dir_to_move == "L":
                     target = p - 1
-                    if(target < 0):
+                    if target < 0:
                         target = 2
                 else:
                     target = p + 1
-                    if(target > 2):
+                    if target > 2:
                         target = 0
                 pillars[target] += [block_to_move]
                 break
@@ -60,8 +61,8 @@ def execute_moves(num_blocks, moves):
 class TestHanoi(unittest.TestCase):
 
     def testSwap(self):
-        s = swap_l_and_r(["1L","2R","1L"])
-        self.assertEqual(s,["1R","2L","1R"])
+        s = swap_l_and_r(["1L", "2R", "1L"])
+        self.assertEqual(s, ["1R", "2L", "1R"])
 
     def testAll(self):
         for b in range(1, 12):
@@ -70,11 +71,11 @@ class TestHanoi(unittest.TestCase):
             print(len(moves))
             expected = [] + swap_l_and_r(move(b-1)) + [str(b) + "L"] + swap_l_and_r(move(b - 1))
             self.assertEqual(moves, expected)
-            self.assertEqual(len(moves), (1<<b)-1)
+            self.assertEqual(len(moves), (1 << b) - 1)
             result = execute_moves(b, moves)
-            self.assertEqual(len(result[0]),0)
-            self.assertEqual(len(result[1]),0)
-            self.assertEqual(len(result[2]),b)
+            self.assertEqual(len(result[0]), 0)
+            self.assertEqual(len(result[1]), 0)
+            self.assertEqual(len(result[2]), b)
             print(result)
             for tb in range(0, b):
                 self.assertEqual(result[2][tb], str(b-tb))
